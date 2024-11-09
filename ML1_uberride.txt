@@ -1,0 +1,137 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+%matplotlib inline
+from scipy.stats import chi2_contingency
+import seaborn as sns
+from sklearn.neighbors import KNeighborsClassifier
+from random import randrange, uniform
+Train_Data = pd.read_csv(r'ubertrain.csv')
+Train_Data.head()
+Train_Data.drop(labels='Unnamed: 0',axis=1,inplace=True)
+Train_Data.drop(labels='key',axis=1,inplace=True)
+Train_Data.shape
+test = pd.read_csv(r'ubertest.csv')
+test.head(3)
+test.shape,Train_Data.shape
+Train_Data.head()
+test.head()
+
+As this is Taxi fare data and we know there are many factors which affect the price of
+taxi like
+
+1. Travelled distance
+2. Time of Travel
+3. Demand and Availability of Taxi
+4. Some special places are more costlier like Airport or other places where there might be toll
+print(Train_Data.info())
+print(test.info())
+.here we can see there are 8columns in which 6 numerics and 2 are object.
+ Lets change the type of pickup_datetime from object to DateTime
+.Train_Data["pickup_datetime"] = pd.to_datetime(Train_Data["pickup_datetime"])
+ print(Train_Data.info())
+Train_Data.describe()
+
+1.Here first thing which we can see is minimum value of fare is negative which is -52 which is not the valid value, so we need to remove the fare
+which are negative values.
+2.Secondly, passenger_count minimum value is 0 and maximum value is 208 which impossible, so we need to remove them as well, for safer
+side we can think that a taxi can have maximum 7 people.
+Unsupported Cell Type. Double-Click to inspect/edit the content.
+Train_Data.isnull().sum()
+Train_Data.dropna(axis = 0, inplace= True)
+print(Train_Data.isnull().sum())
+sns.distplot(Train_Data['fare_amount'])
+sns.distplot(Train_Data['pickup_latitude'])
+sns.distplot(Train_Data['pickup_longitude'])
+sns.distplot(Train_Data['dropoff_longitude'])
+sns.distplot(Train_Data['dropoff_latitude'])
+.print("drop_off latitude min value",Train_Data["dropoff_latitude"].min())
+print("drop_off latitude max value",Train_Data["dropoff_latitude"].max())
+print("drop_off longitude min value", Train_Data["dropoff_longitude"].min())
+print("drop_off longitude max value",Train_Data["dropoff_longitude"].max())
+print("pickup latitude min value",Train_Data["pickup_latitude"].min())
+print("pickup latitude max value",Train_Data["pickup_latitude"].max())
+print("pickup longitude min value",Train_Data["pickup_longitude"].min())
+print("pickup longitude max value",Train_Data["pickup_longitude"].max())
+.print("drop_off latitude min value",test["dropoff_latitude"].min())
+print("drop_off latitude max value",test["dropoff_latitude"].max())
+print("drop_off longitude min value", test["dropoff_longitude"].min())
+print("drop_off longitude max value",test["dropoff_longitude"].max())
+print("pickup latitude min value",test["pickup_latitude"].min())
+print("pickup latitude max value",test["pickup_latitude"].max())
+print("pickup longitude min value",test["pickup_longitude"].min())
+print("pickup longitude max value",test["pickup_longitude"].max())
+.min_longitude=-1491.194073,
+min_latitude=-74.001047,
+max_longitude=40.812005,
+max_latitude=41.709555
+min_longitude=-1491.194073,
+min_latitude=-74.001047,
+max_longitude=40.812005,
+max_latitude=41.709555
+
+tempdf=Train_Data[(Train_Data["dropoff_latitude"]<min_latitude) |
+(Train_Data["pickup_latitude"]<min_latitude) |
+(Train_Data["dropoff_longitude"]<min_longitude) |
+(Train_Data["pickup_longitude"]<min_longitude) |
+(Train_Data["dropoff_latitude"]>max_latitude) |
+(Train_Data["pickup_latitude"]>max_latitude) |
+(Train_Data["dropoff_longitude"]>max_longitude) |
+(Train_Data["pickup_longitude"]>max_longitude) ]
+print("before droping",Train_Data.shape)
+Train_Data.drop(tempdf.index,inplace=True)
+print("after droping",Train_Data.shape)
+.import calendar
+Train_Data['day']=Train_Data['pickup_datetime'].apply(lambda x:x.day)
+Train_Data['hour']=Train_Data['pickup_datetime'].apply(lambda x:x.hour)
+Train_Data['month']=Train_Data['pickup_datetime'].apply(lambda x:x.month)
+Train_Data['year']=Train_Data['pickup_datetime'].apply(lambda x:x.year)
+Train_Data['weekday']=Train_Data['pickup_datetime'].apply(lambda x: calendar.day_name[x.weekday()])
+.Train_Data.weekday = Train_Data.weekday.map({'Sunday':0,'Monday':1,'Tuesday':2,'Wednesday':3,'Thursday':4,'Friday':5,'Saturday':6})
+.Train_Data.drop(labels = 'pickup_datetime',axis=1,inplace=True)
+Train_Data.head(1)
+Train_Data.info()
+.from sklearn.model_selection import train_test_split
+x=Train_Data.drop("fare_amount", axis=1)
+x
+.y=Train_Data["fare_amount"]
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=101)
+x_train.head()
+x_test.head()
+y_train.head()
+y_test.head()
+.print(x_train.shape)
+print(x_test.shape)
+print(y_test.shape)
+print(y_train.shape)
+.from sklearn.linear_model import LinearRegression
+lrmodel=LinearRegression()
+lrmodel.fit(x_train, y_train)
+.predictedvalues = lrmodel.predict(x_test)
+from sklearn.metrics import mean_squared_error
+lrmodelrmse = np.sqrt(mean_squared_error(predictedvalues, y_test))
+print("RMSE value for Linear regression is", lrmodelrmse)
+.from sklearn.ensemble import RandomForestRegressor
+rfrmodel = RandomForestRegressor(n_estimators=100, random_state=101)
+rfrmodel.fit(x_train,y_train)
+rfrmodel_pred= rfrmodel.predict(x_test)
+rfrmodel_rmse=np.sqrt(mean_squared_error(rfrmodel_pred, y_test))
+print("RMSE value for Random forest regression is ",rfrmodel_rmse)
+.rfrmodel_pred.shape
+.Working on Test Data
+.test = pd.read_csv(r'testt.csv')
+test.drop(test[['Unnamed: 0','Unnamed: 0.1','Unnamed: 0.1.1','key']],axis=1,inplace=True)
+test.isnull().sum()
+.test["pickup_datetime"] = pd.to_datetime(test["pickup_datetime"])
+.test['day']=test['pickup_datetime'].apply(lambda x:x.day)
+test['hour']=test['pickup_datetime'].apply(lambda x:x.hour)
+test['month']=test['pickup_datetime'].apply(lambda x:x.month)
+test['year']=test['pickup_datetime'].apply(lambda x:x.year)
+test['weekday']=test['pickup_datetime'].apply(lambda x: calendar.day_name[x.weekday()])
+.test.head(5)
+.test.drop(['pickup_datetime'], axis = 1, inplace = True)
+test.weekday = test.weekday.map({'Sunday':0,'Monday':1,'Tuesday':2,'Wednesday':3,'Thursday':4,'Friday':5,'Saturday':6})
+rfrmodel_pred= rfrmodel.predict(test)
+df = pd.DataFrame(rfrmodel_pred)
+df
